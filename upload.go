@@ -44,7 +44,7 @@ func makeRandName(ext string) string {
 	name := fmt.Sprintf("%d%d", time.Now().Unix(), randNum)
 	h := sha1.New()
 	io.WriteString(h, name)
-	_n := fmt.Sprintf("%x", h.Sum(nil))
+	_n := fmt.Sprintf("%x.", h.Sum(nil))
 	return _n + ext
 }
 
@@ -117,7 +117,7 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string) (fileInfo
 		return fileInfo{}, nil
 	}
 	decodeBytes, err := base64.StdEncoding.DecodeString(imgstr)
-
+	//fmt.Printf("get imgstr:%s", decodeBytes)
 	_is_random_name, _ := strconv.Atoi(is_random_name)
 	if _is_random_name == 1 {
 		name = makeRandName(ext)
@@ -128,7 +128,7 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string) (fileInfo
 	if !IsExist(xpath) {
 		os.MkdirAll(xpath, 0777)
 	}
-	fileName := xpath + name
+	fileName := xpath + "/" + name
 	f, err := os.Create(fileName)
 	defer f.Close()
 	if err != nil {
@@ -137,6 +137,6 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string) (fileInfo
 		_, err = f.Write([]byte(decodeBytes))
 	}
 	thumb := []fileInfo{}
-	link := fileInfo{URLPRIX + fileName, name, ext, yearMonthDay + name, thumb}
+	link := fileInfo{URLPRIX + fileName, name, ext, yearMonthDay + "/" + name, thumb}
 	return link, nil
 }
