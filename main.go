@@ -1,16 +1,72 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"reflect"
+	"sort"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+func checkVerifyParmas(c *gin.Context) (interface{}, string, bool) {
+	f := c.Request.URL.Query()
+	var flag = false
+	var signOrignVal = ""
+	var dict map[string]interface{}     //定义dict为map类型
+	dict = make(map[string]interface{}) //让dict可编辑
+	for k, _ := range f {
+		val := c.Query(k)
+		fmt.Printf("key:%s ,v:%s\n", k, val)
+		dict[k] = val
+	}
+	signOrignVal = c.Query("sign")
+	delete(dict, "sign")
+	signVal := signMD5(dict, "")
+	if signOrignVal == signVal {
+		flag = true
+	}
+	return dict, signVal, flag
+}
+
+func signMD5(data map[string]interface{}, signKey string) string {
+	if signKey == "" {
+		signKey = "123321!@#"
+	}
+	var keys []string
+	for k := range data {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+	var strData string
+	for _, k := range keys {
+		reflectA := reflect.TypeOf(data[k])
+		if reflectA.Kind() == reflect.Interface {
+			_json, _ := json.Marshal(data[k])
+			strData += signKey + string(_json)
+		} else if reflectA.Kind() != reflect.String {
+			strData += signKey + strconv.FormatFloat(data[k].(float64), 'E', -1, 32)
+		} else {
+			strData += signKey + data[k].(string)
+		}
+	}
+	strData += signKey
+	fmt.Println(strData)
+	_data := []byte(strData)
+	has := md5.Sum(_data)
+	md5str1 := fmt.Sprintf("%x", has) //将[]byte转成16进制
+	return md5str1
+}
 
 func main() {
 	router := gin.Default()
 	// Set a lower memory limit for multipart forms (default is 32 MiB)
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-	router.Static("/", "./public")
+	//router.Static("/", "./public")
 	router.POST("/Upload/image", func(c *gin.Context) {
 		is_random_name := c.DefaultQuery("is_random_name", "1")
 		designated_path := c.Query("designated_path")
@@ -61,6 +117,14 @@ func main() {
 					"Thumb":    link.Thumb,
 				},
 			},
+		})
+	})
+	router.GET("/Tff", func(c *gin.Context) {
+		dict, signV, flag := checkVerifyParmas(c)
+		c.JSON(http.StatusOK, gin.H{
+			"dict": dict,
+			"sign": signV,
+			"flag": flag,
 		})
 	})
 
