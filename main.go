@@ -71,15 +71,20 @@ func main() {
 		is_random_name := c.DefaultQuery("is_random_name", "1")
 		designated_path := c.Query("designated_path")
 		//designated_path := c.DefaultQuery("designated_path", "img/")
-		//makeThumb := c.DefaultQuery("makeThumb", "0")
-		//		thumb_w_string := c.Query("thumb_w_string")
-		//		thumb_h_string := c.Query("thumb_h_string")
+		makeThumb := c.DefaultQuery("makeThumb", "0")
+		thumb_w_string := c.DefaultQuery("thumb_w_string", "")
+		thumb_h_string := c.DefaultQuery("thumb_h_string", "")
 		//		compressImg := c.DefaultQuery("compressImg", "0")
-		//		fire := c.DefaultQuery("fire", "0_0_0")
-
+		fire := c.DefaultQuery("fire", "0_0_0")
+		params := map[string]string{
+			"makeThumb":      makeThumb,
+			"fire":           fire,
+			"thumb_w_string": thumb_w_string,
+			"thumb_h_string": thumb_h_string,
+		}
 		// Source
 		svc := uploadService{}
-		link, _ := svc.Save(c, designated_path, is_random_name)
+		link, _ := svc.Save(c, designated_path, is_random_name, params)
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
 			"msg":  "success",
@@ -95,16 +100,22 @@ func main() {
 		})
 	})
 	router.POST("/Upload/avatar", func(c *gin.Context) {
-		//makeThumb := c.DefaultQuery("makeThumb", "0")
-		//		thumb_w_string := c.Query("thumb_w_string")
-		//		thumb_h_string := c.Query("thumb_h_string")
+		makeThumb := c.DefaultQuery("makeThumb", "0")
+		thumb_w_string := c.Query("thumb_w_string")
+		thumb_h_string := c.Query("thumb_h_string")
 		//		compressImg := c.DefaultQuery("compressImg", "0")
-		//		fire := c.DefaultQuery("fire", "0_0_0")
+		fire := c.DefaultQuery("fire", "0_0_0")
 
 		// Source
 		var is_random_name = "1"
 		svc := uploadService{}
-		link, _ := svc.base64Save(c, is_random_name)
+		params := map[string]string{
+			"makeThumb":      makeThumb,
+			"fire":           fire,
+			"thumb_w_string": thumb_w_string,
+			"thumb_h_string": thumb_h_string,
+		}
+		link, _ := svc.base64Save(c, is_random_name, params)
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
 			"msg":  "success",

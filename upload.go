@@ -27,6 +27,13 @@ const MIN = 111111
 const MAX = 999999
 const URLPRIX = "https://dev.source.zejicert.cn/"
 const REGXP_IMG = `data:image\/(.*);base64,(.*)`
+const THUMB_MAX_WIDTH_STR = "60,150,315"
+const THUMB_MAX_HEIGHT_STR = "80,150,420"
+const THUMB_PREFIX = "small_,thumb_,big_"
+const THUMB_PATH = "/thumb/"
+const FIRE_W = 150
+const FIRE_H = 150
+const FIRE_PREFIX = "fs_"
 
 type uploadService struct{}
 
@@ -70,7 +77,7 @@ func IsExist(path string) bool {
 }
 
 //form save file
-func (uploadService) Save(c *gin.Context, designated_path string, is_random_name string) (fileInfo, error) {
+func (uploadService) Save(c *gin.Context, designated_path string, is_random_name string, params map[string]string) (fileInfo, error) {
 	var name string
 	var xpath string
 	_is_random_name, _ := strconv.Atoi(is_random_name)
@@ -104,11 +111,28 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 		return fileInfo{}, nil
 	}
 	thumb := []fileInfo{}
+	//TODO make thumb
+	_makeThumb, _ := strconv.Atoi(params["makeThumb"])
+	if _makeThumb == 1 {
+		if params["thumb_w_string"] == "0" {
+			thumb_w_string := THUMB_MAX_HEIGHT_STR
+			thumb_h_string := THUMB_MAX_WIDTH_STR
+		} else {
+			thumb_w_string := params["thumb_w_string"]
+			thumb_h_string := params["thumb_h_string"]
+		}
+
+	}
+	//TODO make fire
+	if params["fire"] != "0_0_0" {
+
+	}
+
 	link := fileInfo{URLPRIX + filename, name, ext, designated_path + name, thumb}
 	return link, nil
 }
 
-func (uploadService) base64Save(c *gin.Context, is_random_name string) (fileInfo, error) {
+func (uploadService) base64Save(c *gin.Context, is_random_name string, params map[string]string) (fileInfo, error) {
 	var name string
 	var xpath string
 	body, _ := ioutil.ReadAll(c.Request.Body)
@@ -139,4 +163,9 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string) (fileInfo
 	thumb := []fileInfo{}
 	link := fileInfo{URLPRIX + fileName, name, ext, yearMonthDay + "/" + name, thumb}
 	return link, nil
+}
+
+func makeThumb(thumb_w_string string, thumb_h_string string, designated_path string, filename string) []fileInfo {
+
+	return []fileInfo{}
 }
