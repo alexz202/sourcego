@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -80,6 +81,10 @@ func IsExist(path string) bool {
 func (uploadService) Save(c *gin.Context, designated_path string, is_random_name string, params map[string]string) (fileInfo, error) {
 	var name string
 	var xpath string
+	var thumb_path string
+	var thumb_w_string string
+	var thumb_h_string string
+	var Thumb []fileInfo
 	_is_random_name, _ := strconv.Atoi(is_random_name)
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -110,31 +115,56 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
 		return fileInfo{}, nil
 	}
-	thumb := []fileInfo{}
-	//TODO make thumb
+	imgServ := imageService{}
+	//make thumb
 	_makeThumb, _ := strconv.Atoi(params["makeThumb"])
 	if _makeThumb == 1 {
 		if params["thumb_w_string"] == "0" {
-			thumb_w_string := THUMB_MAX_HEIGHT_STR
-			thumb_h_string := THUMB_MAX_WIDTH_STR
+			thumb_w_string = THUMB_MAX_HEIGHT_STR
+			thumb_h_string = THUMB_MAX_WIDTH_STR
 		} else {
-			thumb_w_string := params["thumb_w_string"]
-			thumb_h_string := params["thumb_h_string"]
+			thumb_w_string = params["thumb_w_string"]
+			thumb_h_string = params["thumb_h_string"]
 		}
-
+		if designated_path != "" {
+			thumb_path = designated_path + THUMB_PATH
+		} else {
+			thumb_path = THUMB_PATH + time.Now().Format("2006/01/02")
+		}
+		if !IsExist(thumb_path) {
+			os.MkdirAll(thumb_path, 0777)
+		}
+		Thumb = makeThumb(imgServ, thumb_w_string, thumb_h_string, thumb_path, filename, name, ext)
 	}
-	//TODO make fire
+	//make fire
 	if params["fire"] != "0_0_0" {
-
+		fire_list := strings.Split(params["fire"], "_")
+		if fire_list[0] == "1" {
+			fire_w := FIRE_W
+			fire_h := FIRE_H
+			_fire_w, _ := strconv.Atoi(fire_list[1])
+			_fire_h, _ := strconv.Atoi(fire_list[2])
+			if _fire_w > 0 {
+				fire_w = _fire_w
+			}
+			if _fire_h > 0 {
+				fire_h = _fire_h
+			}
+			imgServ.ImageFire(xpath+FIRE_PREFIX+name, filename, fire_w, fire_h)
+		}
 	}
 
-	link := fileInfo{URLPRIX + filename, name, ext, designated_path + name, thumb}
+	link := fileInfo{URLPRIX + filename, name, ext, designated_path + name, Thumb}
 	return link, nil
 }
 
 func (uploadService) base64Save(c *gin.Context, is_random_name string, params map[string]string) (fileInfo, error) {
 	var name string
 	var xpath string
+	var thumb_path string
+	var thumb_w_string string
+	var thumb_h_string string
+	var Thumb []fileInfo
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	ext, imgstr := parseImgStr(string(body))
 	if ext == "" {
@@ -160,12 +190,63 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string, params ma
 	} else {
 		_, err = f.Write([]byte(decodeBytes))
 	}
-	thumb := []fileInfo{}
-	link := fileInfo{URLPRIX + fileName, name, ext, yearMonthDay + "/" + name, thumb}
+	imgServ := imageService{}
+	//make thumb
+	_makeThumb, _ := strconv.Atoi(params["makeThumb"])
+	if _makeThumb == 1 {
+		if params["thumb_w_string"] == "0" {
+			thumb_w_string = THUMB_MAX_HEIGHT_STR
+			thumb_h_string = THUMB_MAX_WIDTH_STR
+		} else {
+			thumb_w_string = params["thumb_w_string"]
+			thumb_h_string = params["thumb_h_string"]
+		}
+		thumb_path = THUMB_PATH + time.Now().Format("2006/01/02")
+		if !IsExist(thumb_path) {
+			os.MkdirAll(thumb_path, 0777)
+		}
+		Thumb = makeThumb(imgServ, thumb_w_string, thumb_h_string, thumb_path, fileName, name, ext)
+	}
+
+	if params["fire"] != "0_0_0" {
+		fire_list := strings.Split(params["fire"], "_")
+		if fire_list[0] == "1" {
+			fire_w := FIRE_W
+			fire_h := FIRE_H
+			_fire_w, _ := strconv.Atoi(fire_list[1])
+			_fire_h, _ := strconv.Atoi(fire_list[2])
+			if _fire_w > 0 {
+				fire_w = _fire_w
+			}
+			if _fire_h > 0 {
+				fire_h = _fire_h
+			}
+			imgServ.ImageFire(xpath+FIRE_PREFIX+name, fileName, fire_w, fire_h)
+		}
+	}
+
+	link := fileInfo{URLPRIX + fileName, name, ext, yearMonthDay + "/" + name, Thumb}
 	return link, nil
 }
 
-func makeThumb(thumb_w_string string, thumb_h_string string, designated_path string, filename string) []fileInfo {
-
-	return []fileInfo{}
+func makeThumb(imgServ imageService, thumb_w_string string, thumb_h_string string, thumb_path string, filename string, name string, ext string) []fileInfo {
+	w_list := strings.Split(thumb_w_string, ",")
+	h_list := strings.Split(thumb_h_string, ",")
+	prefix_list := strings.Split(THUMB_PREFIX, ",")
+	thumb := []fileInfo{}
+	_thumb_path := PATH + thumb_path
+	if !IsExist(thumb_path) {
+		os.MkdirAll(thumb_path, 0777)
+	}
+	i := 0
+	for _, w := range w_list {
+		w, _ := strconv.Atoi(w)
+		h, _ := strconv.Atoi(h_list[i])
+		flag := imgServ.ImageResize(_thumb_path+prefix_list[i]+name, filename, w, h)
+		if flag == 1 {
+			thumb[i] = fileInfo{URLPRIX + _thumb_path + prefix_list[i] + name, prefix_list[i] + name, ext, thumb_path + "/" + prefix_list[i] + name, []fileInfo{}}
+		}
+		i++
+	}
+	return thumb
 }
