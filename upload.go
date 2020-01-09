@@ -52,7 +52,7 @@ func makeRandName(ext string) string {
 	name := fmt.Sprintf("%d%d", time.Now().Unix(), randNum)
 	h := sha1.New()
 	io.WriteString(h, name)
-	_n := fmt.Sprintf("%x.", h.Sum(nil))
+	_n := fmt.Sprintf("%x", h.Sum(nil))
 	return _n + ext
 }
 
@@ -100,7 +100,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 	fmt.Printf("get name:%s", name)
 
 	if designated_path != "" {
-		xpath = PATH + designated_path
+		xpath = PATH + designated_path + "/"
 		// CHECK FOLDER IF NOT EXIST MKDIR
 		if !IsExist(xpath) {
 			os.MkdirAll(xpath, 0777)
@@ -127,10 +127,11 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 			thumb_h_string = params["thumb_h_string"]
 		}
 		if designated_path != "" {
-			thumb_path = designated_path + THUMB_PATH
+			thumb_path = "/" + designated_path + THUMB_PATH
 		} else {
 			thumb_path = THUMB_PATH + time.Now().Format("2006/01/02")
 		}
+		fmt.Printf("get thumb path:%s", thumb_path)
 		if !IsExist(thumb_path) {
 			os.MkdirAll(thumb_path, 0777)
 		}
@@ -202,6 +203,7 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string, params ma
 			thumb_h_string = params["thumb_h_string"]
 		}
 		thumb_path = THUMB_PATH + time.Now().Format("2006/01/02")
+		fmt.Printf("get thumb path:%s", thumb_path)
 		if !IsExist(thumb_path) {
 			os.MkdirAll(thumb_path, 0777)
 		}
@@ -233,17 +235,21 @@ func makeThumb(imgServ imageService, thumb_w_string string, thumb_h_string strin
 	w_list := strings.Split(thumb_w_string, ",")
 	h_list := strings.Split(thumb_h_string, ",")
 	prefix_list := strings.Split(THUMB_PREFIX, ",")
-	thumb := []fileInfo{}
+	//var thumb []fileInfo
+	thumb := make([]fileInfo, 3)
 	_thumb_path := PATH + thumb_path
 	if !IsExist(thumb_path) {
-		os.MkdirAll(thumb_path, 0777)
+		os.MkdirAll(_thumb_path, 0777)
 	}
 	i := 0
 	for _, w := range w_list {
 		w, _ := strconv.Atoi(w)
 		h, _ := strconv.Atoi(h_list[i])
+		//fmt.Printf("get thumb w:%d,h:%d;i:%d/r/n", w, h, i)
 		flag := imgServ.ImageResize(_thumb_path+prefix_list[i]+name, filename, w, h)
 		if flag == 1 {
+			fmt.Printf("get thumb w:%d,h:%d;i:%d/r/n", w, h, i)
+			//thumb = append(thumb, fileInfo{URLPRIX + _thumb_path + prefix_list[i] + name, prefix_list[i] + name, ext, thumb_path + "/" + prefix_list[i] + name, []fileInfo{}})
 			thumb[i] = fileInfo{URLPRIX + _thumb_path + prefix_list[i] + name, prefix_list[i] + name, ext, thumb_path + "/" + prefix_list[i] + name, []fileInfo{}}
 		}
 		i++

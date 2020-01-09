@@ -72,8 +72,8 @@ func main() {
 		designated_path := c.Query("designated_path")
 		//designated_path := c.DefaultQuery("designated_path", "img/")
 		makeThumb := c.DefaultQuery("makeThumb", "0")
-		thumb_w_string := c.DefaultQuery("thumb_w_string", "")
-		thumb_h_string := c.DefaultQuery("thumb_h_string", "")
+		thumb_w_string := c.DefaultQuery("thumb_w_string", "0")
+		thumb_h_string := c.DefaultQuery("thumb_h_string", "0")
 		//		compressImg := c.DefaultQuery("compressImg", "0")
 		fire := c.DefaultQuery("fire", "0_0_0")
 		params := map[string]string{
@@ -101,8 +101,8 @@ func main() {
 	})
 	router.POST("/Upload/avatar", func(c *gin.Context) {
 		makeThumb := c.DefaultQuery("makeThumb", "0")
-		thumb_w_string := c.Query("thumb_w_string")
-		thumb_h_string := c.Query("thumb_h_string")
+		thumb_w_string := c.DefaultQuery("thumb_w_string", "0")
+		thumb_h_string := c.DefaultQuery("thumb_h_string", "0")
 		//		compressImg := c.DefaultQuery("compressImg", "0")
 		fire := c.DefaultQuery("fire", "0_0_0")
 
