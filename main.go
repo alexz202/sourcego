@@ -90,10 +90,10 @@ func main() {
 			"msg":  "success",
 			"data": gin.H{
 				"link": gin.H{
-					"fileUrl":  link.fileUrl,
-					"fileName": link.fileName,
-					"ext":      link.ext,
-					"fileUri":  link.fileUri,
+					"fileUrl":  link.FileUrl,
+					"fileName": link.FileName,
+					"ext":      link.Ext,
+					"fileUri":  link.FileUri,
 					"Thumb":    link.Thumb,
 				},
 			},
@@ -121,11 +121,10 @@ func main() {
 			"msg":  "success",
 			"data": gin.H{
 				"link": gin.H{
-					"fileUrl":  link.fileUrl,
-					"fileName": link.fileName,
-					"ext":      link.ext,
-					"fileUri":  link.fileUri,
-					"Thumb":    link.Thumb,
+					"fileUrl":  link.FileUrl,
+					"fileName": link.FileName,
+					"ext":      link.Ext,
+					"fileUri":  link.FileUri,
 				},
 			},
 		})
