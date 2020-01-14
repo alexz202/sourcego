@@ -109,7 +109,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 		xpath = PATH
 	}
 
-	fmt.Printf("get path:%s", xpath)
+	fmt.Printf("get path:%s/r/n", xpath)
 	filename := xpath + name
 	if err := c.SaveUploadedFile(file, filename); err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
@@ -131,7 +131,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 		} else {
 			thumb_path = THUMB_PATH + time.Now().Format("2006/01/02")
 		}
-		fmt.Printf("get thumb path:%s", thumb_path)
+		//fmt.Printf("get thumb path:%s", thumb_path)
 		Thumb = makeThumb(imgServ, thumb_w_string, thumb_h_string, thumb_path, filename, name, ext)
 	}
 	//make fire
@@ -148,7 +148,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 			if _fire_h > 0 {
 				fire_h = _fire_h
 			}
-			imgServ.ImageFire(xpath+FIRE_PREFIX+name, filename, fire_w, fire_h)
+			go imgServ.ImageFire(xpath+FIRE_PREFIX+name, filename, fire_w, fire_h)
 		}
 	}
 	link := fileInfo{FileUrl: URLPRIX + filename, FileName: name, Ext: ext, FileUri: designated_path + name, Thumb: Thumb}
@@ -216,7 +216,7 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string, params ma
 			if _fire_h > 0 {
 				fire_h = _fire_h
 			}
-			imgServ.ImageFire(xpath+FIRE_PREFIX+name, fileName, fire_w, fire_h)
+			go imgServ.ImageFire(xpath+FIRE_PREFIX+name, fileName, fire_w, fire_h)
 		}
 	}
 
@@ -229,21 +229,44 @@ func makeThumb(imgServ imageService, thumb_w_string string, thumb_h_string strin
 	h_list := strings.Split(thumb_h_string, ",")
 	prefix_list := strings.Split(THUMB_PREFIX, ",")
 	var thumb []fileInfo
+	var _thumb []fileInfo
 	//thumb := make([]fileInfo, 3)
+	w_len := len(w_list)
 	_thumb_path := PATH + thumb_path
 	if !IsExist(thumb_path) {
 		os.MkdirAll(_thumb_path, 0777)
 	}
+	chs := make([]chan int, w_len)
 	i := 0
 	for _, w := range w_list {
 		w, _ := strconv.Atoi(w)
 		h, _ := strconv.Atoi(h_list[i])
-		flag := imgServ.ImageResize(_thumb_path+prefix_list[i]+name, filename, w, h)
-		if flag == 1 {
-			//fmt.Printf("get thumb w:%d,h:%d;i:%d/r/n", w, h, i)
-			thumb = append(thumb, fileInfo{FileUrl: URLPRIX + _thumb_path + prefix_list[i] + name, FileName: prefix_list[i] + name, Ext: ext, FileUri: thumb_path + prefix_list[i] + name, Thumb: []fileInfo{}})
-		}
+		//use channel
+		chs[i] = make(chan int)
+		go makeOneThumb(imgServ, _thumb_path+prefix_list[i]+name, filename, w, h, chs[i])
+		//_thumb[i] = fileInfo{FileUrl: URLPRIX + _thumb_path + prefix_list[i] + name, FileName: prefix_list[i] + name, Ext: ext, FileUri: thumb_path + prefix_list[i] + name, Thumb: []fileInfo{}}
+		// if flag == 1 {
+		// 	//fmt.Printf("get thumb w:%d,h:%d;i:%d/r/n", w, h, i)
+		_thumb = append(_thumb, fileInfo{FileUrl: URLPRIX + _thumb_path + prefix_list[i] + name, FileName: prefix_list[i] + name, Ext: ext, FileUri: thumb_path + prefix_list[i] + name, Thumb: []fileInfo{}})
+		// }
 		i++
 	}
+	// check all chs has finished
+	for k, ch := range chs {
+		v := <-ch
+		fmt.Printf("get channel k:%d,ch:%d/r/n", k, v)
+		if v == 1 {
+			thumb = append(thumb, _thumb[k])
+		}
+	}
+
 	return thumb
+}
+
+func makeOneThumb(imgServ imageService, aimFile string, srcImage string, width int, height int, ch chan int) int {
+	flag := imgServ.ImageResize(aimFile, srcImage, width, height)
+	if flag == 1 {
+		ch <- 1
+	}
+	return flag
 }
