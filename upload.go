@@ -224,6 +224,35 @@ func (uploadService) base64Save(c *gin.Context, is_random_name string, params ma
 	return link, nil
 }
 
+func (uploadService) steamSave(c *gin.Context, is_random_name string, params map[string]string) (fileInfo, error) {
+	var name string
+	var xpath string
+	var Thumb []fileInfo
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	ext := params["ext"]
+	//fmt.Printf("get imgstr:%s", decodeBytes)
+	_is_random_name, _ := strconv.Atoi(is_random_name)
+	if _is_random_name == 1 {
+		name = makeRandName(ext)
+	}
+	yearMonthDay := time.Now().Format("2006/01/02")
+	xpath = PATH + yearMonthDay
+	// CHECK FOLDER IF NOT EXIST MKDIR
+	if !IsExist(xpath) {
+		os.MkdirAll(xpath, 0777)
+	}
+	fileName := xpath + "/" + name
+	f, err := os.Create(fileName)
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		_, err = f.Write([]byte(body))
+	}
+	link := fileInfo{FileUrl: URLPRIX + fileName, FileName: name, Ext: ext, FileUri: yearMonthDay + "/" + name, Thumb: Thumb}
+	return link, nil
+}
+
 func makeThumb(imgServ imageService, thumb_w_string string, thumb_h_string string, thumb_path string, filename string, name string, ext string) []fileInfo {
 	w_list := strings.Split(thumb_w_string, ",")
 	h_list := strings.Split(thumb_h_string, ",")

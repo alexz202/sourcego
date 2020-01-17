@@ -137,6 +137,67 @@ func main() {
 			"flag": flag,
 		})
 	})
+	router.POST("/Upload/file", func(c *gin.Context) {
+		_, _, flag := checkVerifyParmas(c)
+		if flag == true {
+			is_random_name := c.DefaultQuery("is_random_name", "1")
+			designated_path := c.Query("designated_path")
+			//designated_path := c.DefaultQuery("designated_path", "img/")
+			//		compressImg := c.DefaultQuery("compressImg", "0")
+			params := map[string]string{}
+			// Source
+			svc := uploadService{}
+			link, _ := svc.Save(c, designated_path, is_random_name, params)
+			c.JSON(http.StatusOK, gin.H{
+				"code": 1,
+				"msg":  "success",
+				"data": gin.H{
+					"link": gin.H{
+						"fileUrl":  link.FileUrl,
+						"fileName": link.FileName,
+						"ext":      link.Ext,
+						"fileUri":  link.FileUri,
+						// "Thumb":    link.Thumb,
+					},
+				},
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 999,
+				"msg":  "签名错误",
+			})
+		}
+	})
+	router.POST("/Upload/fileStream", func(c *gin.Context) {
+		_, _, flag := checkVerifyParmas(c)
+		if flag == true {
+			// Source
+			ext := c.Query("ext")
+			var is_random_name = "1"
+			svc := uploadService{}
+			params := map[string]string{
+				"ext": ext,
+			}
+			link, _ := svc.steamSave(c, is_random_name, params)
+			c.JSON(http.StatusOK, gin.H{
+				"code": 1,
+				"msg":  "success",
+				"data": gin.H{
+					"link": gin.H{
+						"fileUrl":  link.FileUrl,
+						"fileName": link.FileName,
+						"ext":      link.Ext,
+						"fileUri":  link.FileUri,
+					},
+				},
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 999,
+				"msg":  "签名错误",
+			})
+		}
+	})
 
 	router.Run(":8080")
 }
