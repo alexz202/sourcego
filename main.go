@@ -43,9 +43,7 @@ func signMD5(data map[string]interface{}, signKey string) string {
 	for k := range data {
 		keys = append(keys, k)
 	}
-
 	sort.Strings(keys)
-	var i = 0
 	var strData string
 	for _, k := range keys {
 		reflectA := reflect.TypeOf(data[k])
@@ -54,13 +52,12 @@ func signMD5(data map[string]interface{}, signKey string) string {
 			val = append(val, string(_json))
 			// strData += signKey + string(_json)
 		} else if reflectA.Kind() != reflect.String {
-			//strData += signKey + strconv.FormatFloat(data[k].(float64), 'E', -1, 32)
+			strData += signKey + strconv.FormatFloat(data[k].(float64), 'E', -1, 32)
 			val = append(val, strconv.FormatFloat(data[k].(float64), 'E', -1, 32))
 		} else {
 			//strData += signKey + data[k].(string)
 			val = append(val, data[k].(string))
 		}
-		i++
 	}
 
 	strData = strings.Join(val, signKey)
