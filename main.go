@@ -154,7 +154,7 @@ func main() {
 	router.POST("/Upload/file", func(c *gin.Context) {
 		_, _, flag := checkVerifyParmas(c)
 		if flag == true {
-			is_random_name := c.DefaultQuery("is_random_name", "1")
+			is_random_name := c.DefaultQuery("is_random_name", "0")
 			designated_path := c.Query("designated_path")
 			//designated_path := c.DefaultQuery("designated_path", "img/")
 			//		compressImg := c.DefaultQuery("compressImg", "0")
