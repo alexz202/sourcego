@@ -84,20 +84,28 @@ func main() {
 		}
 		// Source
 		svc := uploadService{}
-		link, _ := svc.Save(c, designated_path, is_random_name, params)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
-			"msg":  "success",
-			"data": gin.H{
-				"link": gin.H{
-					"fileUrl":  link.FileUrl,
-					"fileName": link.FileName,
-					"ext":      link.Ext,
-					"fileUri":  link.FileUri,
-					"Thumb":    link.Thumb,
+		flag := svc.CheckImage(c)
+		if flag {
+			link, _ := svc.Save(c, designated_path, is_random_name, params)
+			c.JSON(http.StatusOK, gin.H{
+				"code": 1000,
+				"msg":  "success",
+				"data": gin.H{
+					"link": gin.H{
+						"fileUrl":  link.FileUrl,
+						"fileName": link.FileName,
+						"ext":      link.Ext,
+						"fileUri":  link.FileUri,
+						"Thumb":    link.Thumb,
+					},
 				},
-			},
-		})
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 2003,
+				"msg":  "invaild type,please upload image file",
+			})
+		}
 	})
 	router.POST("/Upload/avatar", func(c *gin.Context) {
 		makeThumb := c.DefaultQuery("makeThumb", "0")
@@ -117,7 +125,7 @@ func main() {
 		}
 		link, _ := svc.base64Save(c, is_random_name, params)
 		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
+			"code": 1000,
 			"msg":  "success",
 			"data": gin.H{
 				"link": gin.H{
@@ -149,7 +157,7 @@ func main() {
 			svc := uploadService{}
 			link, _ := svc.Save(c, designated_path, is_random_name, params)
 			c.JSON(http.StatusOK, gin.H{
-				"code": 1,
+				"code": 1000,
 				"msg":  "success",
 				"data": gin.H{
 					"link": gin.H{
@@ -180,7 +188,7 @@ func main() {
 			}
 			link, _ := svc.steamSave(c, is_random_name, params)
 			c.JSON(http.StatusOK, gin.H{
-				"code": 1,
+				"code": 1000,
 				"msg":  "success",
 				"data": gin.H{
 					"link": gin.H{

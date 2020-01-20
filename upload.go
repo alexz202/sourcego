@@ -77,6 +77,24 @@ func IsExist(path string) bool {
 	//return !os.IsNotExist(err)
 }
 
+func (uploadService) CheckImage(c *gin.Context) bool {
+	file, err := c.FormFile("filename")
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return false
+	}
+	ext := path.Ext(file.Filename)
+	var allow_list = map[string]string{".gif": "1", ".jpg": "1", ".jpeg": "1", ".bmp": "1", ".png": "1"}
+	fmt.Printf("get ext:%s", ext)
+	_, exist := allow_list[ext]
+	if exist {
+		return true
+	} else {
+		return false
+	}
+
+}
+
 //form save file
 func (uploadService) Save(c *gin.Context, designated_path string, is_random_name string, params map[string]string) (fileInfo, error) {
 	var name string
@@ -86,7 +104,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 	var thumb_h_string string
 	var Thumb []fileInfo
 	_is_random_name, _ := strconv.Atoi(is_random_name)
-	file, err := c.FormFile("file")
+	file, err := c.FormFile("filename")
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 		return fileInfo{}, nil
