@@ -26,7 +26,7 @@ type UploadService interface {
 const PATH = "public/"
 const MIN = 111111
 const MAX = 999999
-const URLPRIX = "https://dev.source.zejicert.cn/"
+const URLPRIX = "https://devsource.zejicert.cn/"
 const REGXP_IMG = `data:image\/(.*);base64,(.*)`
 const THUMB_MAX_WIDTH_STR = "60,150,315"
 const THUMB_MAX_HEIGHT_STR = "80,150,420"
