@@ -169,7 +169,7 @@ func (uploadService) Save(c *gin.Context, designated_path string, is_random_name
 			go imgServ.ImageFire(xpath+FIRE_PREFIX+name, filename, fire_w, fire_h)
 		}
 	}
-	link := fileInfo{FileUrl: URLPRIX + filename, FileName: name, Ext: ext, FileUri: designated_path + name, Thumb: Thumb}
+	link := fileInfo{FileUrl: URLPRIX + filename, FileName: name, Ext: ext, FileUri: designated_path + "/" + name, Thumb: Thumb}
 	return link, nil
 }
 
