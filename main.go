@@ -29,6 +29,7 @@ func checkVerifyParmas(c *gin.Context) (interface{}, string, bool) {
 	if signOrignVal == signVal {
 		flag = true
 	}
+	fmt.Printf("signOrignVal:%s ,signVal:%s\n", signOrignVal, signVal)
 	return dict, signVal, flag
 }
 
