@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,24 +39,31 @@ func signMD5(data map[string]interface{}, signKey string) string {
 		signKey = "123321!@#"
 	}
 	var keys []string
+	var val []string
 	for k := range data {
 		keys = append(keys, k)
 	}
 
 	sort.Strings(keys)
+	var i = 0
 	var strData string
 	for _, k := range keys {
 		reflectA := reflect.TypeOf(data[k])
 		if reflectA.Kind() == reflect.Interface {
 			_json, _ := json.Marshal(data[k])
-			strData += signKey + string(_json)
+			val = append(val, string(_json))
+			// strData += signKey + string(_json)
 		} else if reflectA.Kind() != reflect.String {
-			strData += signKey + strconv.FormatFloat(data[k].(float64), 'E', -1, 32)
+			//strData += signKey + strconv.FormatFloat(data[k].(float64), 'E', -1, 32)
+			val = append(val, strconv.FormatFloat(data[k].(float64), 'E', -1, 32))
 		} else {
-			strData += signKey + data[k].(string)
+			//strData += signKey + data[k].(string)
+			val = append(val, data[k].(string))
 		}
+		i++
 	}
-	strData += signKey
+
+	strData = strings.Join(val, signKey)
 	fmt.Println(strData)
 	_data := []byte(strData)
 	has := md5.Sum(_data)
