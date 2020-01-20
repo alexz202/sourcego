@@ -74,7 +74,7 @@ func main() {
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 	//router.Static("/", "./public")
 	router.POST("/Upload/image", func(c *gin.Context) {
-		is_random_name := c.DefaultQuery("is_random_name", "1")
+		is_random_name := c.DefaultQuery("is_random_name", "0")
 		designated_path := c.Query("designated_path")
 		//designated_path := c.DefaultQuery("designated_path", "img/")
 		makeThumb := c.DefaultQuery("makeThumb", "0")
